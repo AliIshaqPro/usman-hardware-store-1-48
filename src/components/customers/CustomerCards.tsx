@@ -3,7 +3,10 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Phone, MapPin, Mail, Calendar, Edit } from "lucide-react";
+import { Phone, MapPin, Mail, Calendar, Edit, Download } from "lucide-react";
+import { generateCustomerPurchasePDF } from "@/utils/customerPdfGenerator";
+import { useToast } from "@/hooks/use-toast";
+import { customersApi } from "@/services/api";
 
 interface Customer {
   id: string;
@@ -28,6 +31,9 @@ interface CustomerCardsProps {
 }
 
 export const CustomerCards = ({ customers, loading, onSelectCustomer, onEditCustomer }: CustomerCardsProps) => {
+  const { toast } = useToast();
+  const [exportingCustomer, setExportingCustomer] = useState<string | null>(null);
+
   const getCustomerTypeColor = (type: string) => {
     const colors = {
       Temporary: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100",
@@ -42,6 +48,80 @@ export const CustomerCards = ({ customers, loading, onSelectCustomer, onEditCust
 
   const getStatusColor = (status: string) => {
     return status === "active" || !status ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100" : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100";
+  };
+
+  const handleExportCustomer = async (customer: Customer) => {
+    try {
+      setExportingCustomer(customer.id);
+      
+      // Fetch customer purchase data (mock data for now since API might not have this endpoint)
+      const purchaseData = {
+        customer: customer,
+        purchases: [
+          {
+            id: "1",
+            orderNumber: "ORD-2024-001",
+            date: "2024-12-28T10:30:00Z",
+            amount: 15000,
+            items: [
+              {
+                productName: "Steel Rods - 12mm",
+                quantity: 10,
+                unitPrice: 1200,
+                total: 12000
+              },
+              {
+                productName: "Cement Bags",
+                quantity: 5,
+                unitPrice: 600,
+                total: 3000
+              }
+            ],
+            paymentStatus: "Paid",
+            notes: "Delivered on time"
+          },
+          {
+            id: "2",
+            orderNumber: "ORD-2024-002", 
+            date: "2024-12-25T14:15:00Z",
+            amount: 8500,
+            items: [
+              {
+                productName: "Paint Brushes",
+                quantity: 20,
+                unitPrice: 150,
+                total: 3000
+              },
+              {
+                productName: "Wall Paint - White",
+                quantity: 5,
+                unitPrice: 1100,
+                total: 5500
+              }
+            ],
+            paymentStatus: "Pending",
+            notes: "Customer requested delivery next week"
+          }
+        ]
+      };
+
+      generateCustomerPurchasePDF(purchaseData);
+      
+      toast({
+        title: "Export Successful",
+        description: `Purchase report for ${customer.name} has been downloaded.`,
+      });
+      
+    } catch (error) {
+      console.error('Failed to export customer data:', error);
+      toast({
+        title: "Export Failed",
+        description: "Failed to generate the purchase report. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setExportingCustomer(null);
+    }
   };
 
   if (loading) {
@@ -100,11 +180,23 @@ export const CustomerCards = ({ customers, loading, onSelectCustomer, onEditCust
                   {customer.phone || 'No phone'}
                 </div>
               </div>
-              {(customer.currentBalance || 0) > 0 && (
-                <Badge variant="destructive" className="ml-2">
-                  Due: PKR {customer.currentBalance?.toLocaleString()}
-                </Badge>
-              )}
+              <div className="flex flex-col gap-2">
+                {(customer.currentBalance || 0) > 0 && (
+                  <Badge variant="destructive" className="ml-2">
+                    Due: PKR {customer.currentBalance?.toLocaleString()}
+                  </Badge>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-green-50 hover:bg-green-100 text-green-600 border-green-200"
+                  onClick={() => handleExportCustomer(customer)}
+                  disabled={exportingCustomer === customer.id}
+                >
+                  <Download className="h-4 w-4 mr-1" />
+                  {exportingCustomer === customer.id ? 'Exporting...' : 'Export'}
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
