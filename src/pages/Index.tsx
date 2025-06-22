@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -421,7 +422,9 @@ const Index = () => {
                                     <div className="flex items-center gap-2">
                                       <div className="w-2 h-2 rounded-full bg-green-500"></div>
                                       <span className="text-sm text-muted-foreground">Earnings:</span>
-                                      <span className="text-sm font-medium">{formatCurrency(payload[1]?.value || 0)}</span>
+                                      <span className="text-sm font-medium">
+                                        {formatCurrency(Number(payload[1]?.value) || 0)}
+                                      </span>
                                     </div>
                                   </div>
                                 </div>
