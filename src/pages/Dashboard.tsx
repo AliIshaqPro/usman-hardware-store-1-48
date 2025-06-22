@@ -627,16 +627,16 @@ export default function Dashboard() {
                 <CardDescription className="text-sm">Revenue and orders over time</CardDescription>
               </CardHeader>
               <CardContent className="p-4">
-                <ChartContainer config={salesChartConfig} className="h-[300px] w-full">
-                  <LineChart data={stats?.performance?.weeklyTrend || []}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" className="dark:stroke-slate-700" />
-                    <XAxis dataKey="week" tick={{ fontSize: 12, fill: 'currentColor' }} />
-                    <YAxis tick={{ fontSize: 12, fill: 'currentColor' }} tickFormatter={(value) => `Rs. ${(value / 1000).toFixed(0)}k`} />
-                    <ChartTo}lip content={<ChartTooltipContent formatter={(value, name) => [`Rs. ${value.toLocaleString()}`, name === 'revenue' ? 'Revenue' : 'Orders']} />} />
-                    <Line dataKey="revenue" stroke="#10b981" strokeWidth={3} dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }} />
-                    <Line dataKey="orders" stroke="#3b82f6" strokeWidth={3} dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }} />
-                  </LineChart>
-                </ChartContainer>
+              <ChartContainer config={salesChartConfig} className="h-[300px] w-full">
+  <LineChart data={stats?.performance?.weeklyTrend || []}>
+    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" className="dark:stroke-slate-700" />
+    <XAxis dataKey="week" tick={{ fontSize: 12, fill: 'currentColor' }} />
+    <YAxis tick={{ fontSize: 12, fill: 'currentColor' }} tickFormatter={(value) => `Rs. ${(value / 1000).toFixed(0)}k`} />
+    <ChartTooltip content={<ChartTooltipContent formatter={(value, name) => [`Rs. ${value.toLocaleString()}`, name === 'revenue' ? 'Revenue' : 'Orders']} />} />
+    <Line dataKey="revenue" stroke="#10b981" strokeWidth={3} dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }} />
+    <Line dataKey="orders" stroke="#3b82f6" strokeWidth={3} dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }} />
+  </LineChart>
+</ChartContainer>
               </CardContent>
             </Card>
 
