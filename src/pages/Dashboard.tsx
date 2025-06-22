@@ -1,5 +1,5 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import React from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
@@ -9,10 +9,7 @@ import { DollarSign, TrendingUp, Package, Users, AlertTriangle, CheckCircle, Sho
 import { useQuery } from "@tanstack/react-query"
 import { dashboardApi } from "@/services/api"
 import { reportsApi } from "@/services/reportsApi"
-
-
-import {  Legend, ReferenceLine } from "recharts";
-
+import { Legend, ReferenceLine } from "recharts";
 
 // Enhanced Chart configurations with beautiful colors
 const cashFlowChartConfig = {
