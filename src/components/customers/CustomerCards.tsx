@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -54,69 +53,56 @@ export const CustomerCards = ({ customers, loading, onSelectCustomer, onEditCust
     try {
       setExportingCustomer(customer.id);
       
-      // Fetch customer purchase data (mock data for now since API might not have this endpoint)
+      console.log('Fetching purchase data for customer:', customer.id);
+      
+      // Fetch real customer purchase data from API
+      const ordersResponse = await fetch(`https://usmanhardware.site/wp-json/ims/v1/orders?customerId=${customer.id}&status=all&includeItems=true`);
+      
+      if (!ordersResponse.ok) {
+        throw new Error('Failed to fetch customer orders');
+      }
+      
+      const ordersData = await ordersResponse.json();
+      console.log('Orders API Response:', ordersData);
+      
+      if (!ordersData.success) {
+        throw new Error(ordersData.message || 'Failed to fetch customer orders');
+      }
+      
+      // Transform API data to match PDF generator interface
+      const purchases = (ordersData.data?.orders || []).map((order: any) => ({
+        id: order.id?.toString() || '',
+        orderNumber: order.orderNumber || `ORD-${order.id}`,
+        date: order.createdAt || order.date || new Date().toISOString(),
+        amount: parseFloat(order.totalAmount || order.amount || '0'),
+        items: (order.items || []).map((item: any) => ({
+          productName: item.productName || item.name || 'Unknown Product',
+          quantity: parseInt(item.quantity || '0'),
+          unitPrice: parseFloat(item.unitPrice || item.price || '0'),
+          total: parseFloat(item.total || (item.quantity * item.unitPrice) || '0')
+        })),
+        paymentStatus: order.paymentStatus || order.status || 'Pending',
+        notes: order.notes || order.description || ''
+      }));
+
       const purchaseData = {
         customer: customer,
-        purchases: [
-          {
-            id: "1",
-            orderNumber: "ORD-2024-001",
-            date: "2024-12-28T10:30:00Z",
-            amount: 15000,
-            items: [
-              {
-                productName: "Steel Rods - 12mm",
-                quantity: 10,
-                unitPrice: 1200,
-                total: 12000
-              },
-              {
-                productName: "Cement Bags",
-                quantity: 5,
-                unitPrice: 600,
-                total: 3000
-              }
-            ],
-            paymentStatus: "Paid",
-            notes: "Delivered on time"
-          },
-          {
-            id: "2",
-            orderNumber: "ORD-2024-002", 
-            date: "2024-12-25T14:15:00Z",
-            amount: 8500,
-            items: [
-              {
-                productName: "Paint Brushes",
-                quantity: 20,
-                unitPrice: 150,
-                total: 3000
-              },
-              {
-                productName: "Wall Paint - White",
-                quantity: 5,
-                unitPrice: 1100,
-                total: 5500
-              }
-            ],
-            paymentStatus: "Pending",
-            notes: "Customer requested delivery next week"
-          }
-        ]
+        purchases: purchases
       };
 
+      console.log('Generating PDF with data:', purchaseData);
       generateCustomerPurchasePDF(purchaseData);
       
       toast({
         title: "Export Successful",
-        description: `Purchase report for ${customer.name} has been downloaded.`,
+        description: `Purchase report for ${customer.name} has been downloaded with ${purchases.length} orders.`,
       });
       
     } catch (error) {
       console.error('Failed to export customer data:', error);
       toast({
         title: "Export Failed",
-        description: "Failed to generate the purchase report. Please try again.",
+        description: `Failed to generate the purchase report: ${error.message}`,
         variant: "destructive"
       });
     } finally {
