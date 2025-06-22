@@ -1,4 +1,5 @@
 
+
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -364,7 +365,7 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Daily Sales & Earnings Chart */}
+            {/* Daily Sales & Earnings Chart - UPDATED VERSION */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Activity className="w-4 h-4 text-primary" />
@@ -614,3 +615,4 @@ const Index = () => {
 };
 
 export default Index;
+
