@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { Phone, MapPin, Mail, Calendar, Edit, Download } from "lucide-react";
 import { generateCustomerPurchasePDF } from "@/utils/customerPdfGenerator";
 import { useToast } from "@/hooks/use-toast";
-import { customersApi } from "@/services/api";
 
 interface Customer {
   id: string;
@@ -55,8 +54,8 @@ export const CustomerCards = ({ customers, loading, onSelectCustomer, onEditCust
       
       console.log('Fetching purchase data for customer:', customer.id);
       
-      // Fetch real customer purchase data from API
-      const ordersResponse = await fetch(`https://usmanhardware.site/wp-json/ims/v1/orders?customerId=${customer.id}&status=all&includeItems=true`);
+      // Use the new API endpoint you created
+      const ordersResponse = await fetch(`https://usmanhardware.site/wp-json/ims/v1/customers/${customer.id}/orders?includeItems=true`);
       
       if (!ordersResponse.ok) {
         throw new Error('Failed to fetch customer orders');
@@ -74,15 +73,15 @@ export const CustomerCards = ({ customers, loading, onSelectCustomer, onEditCust
         id: order.id?.toString() || '',
         orderNumber: order.orderNumber || `ORD-${order.id}`,
         date: order.createdAt || order.date || new Date().toISOString(),
-        amount: parseFloat(order.totalAmount || order.amount || '0'),
+        amount: parseFloat(order.totalAmount || '0'),
         items: (order.items || []).map((item: any) => ({
-          productName: item.productName || item.name || 'Unknown Product',
+          productName: item.productName || 'Unknown Product',
           quantity: parseInt(item.quantity || '0'),
-          unitPrice: parseFloat(item.unitPrice || item.price || '0'),
-          total: parseFloat(item.total || (item.quantity * item.unitPrice) || '0')
+          unitPrice: parseFloat(item.unitPrice || '0'),
+          total: parseFloat(item.total || '0')
         })),
-        paymentStatus: order.paymentStatus || order.status || 'Pending',
-        notes: order.notes || order.description || ''
+        paymentStatus: order.paymentStatus || 'Pending',
+        notes: order.notes || ''
       }));
 
       const purchaseData = {
