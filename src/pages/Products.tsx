@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,6 +28,7 @@ const Products = () => {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [productsLoading, setProductsLoading] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
@@ -44,17 +44,40 @@ const Products = () => {
     filterType: 'all' as 'lowStock' | 'outOfStock' | 'inStock' | 'all'
   });
 
+  // Debounce search to avoid too many API calls
+  const [searchDebounce, setSearchDebounce] = useState<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
-    fetchProducts();
     fetchCategories();
     fetchUnits();
+    fetchProducts();
   }, []);
 
+  // Handle search with debouncing
+  useEffect(() => {
+    if (searchDebounce) {
+      clearTimeout(searchDebounce);
+    }
+    
+    const timeout = setTimeout(() => {
+      setCurrentPage(1);
+      fetchProducts();
+    }, 300); // 300ms debounce
+    
+    setSearchDebounce(timeout);
+
+    return () => {
+      if (timeout) clearTimeout(timeout);
+    };
+  }, [searchTerm]);
+
+  // Handle filter changes
   useEffect(() => {
     setCurrentPage(1);
     fetchProducts();
-  }, [searchTerm, categoryFilter, statusFilter]);
+  }, [categoryFilter, statusFilter]);
 
+  // Handle page changes
   useEffect(() => {
     fetchProducts();
   }, [currentPage]);
@@ -78,13 +101,13 @@ const Products = () => {
 
   const fetchProducts = async () => {
     try {
-      setLoading(true);
+      setProductsLoading(true);
       const params: any = {
         page: currentPage,
         limit: itemsPerPage
       };
       
-      if (searchTerm) params.search = searchTerm;
+      if (searchTerm.trim()) params.search = searchTerm.trim();
       if (categoryFilter !== 'all') params.category = categoryFilter;
       if (statusFilter === 'low') params.lowStock = true;
       if (statusFilter === 'out') params.outOfStock = true;
@@ -138,6 +161,7 @@ const Products = () => {
         variant: "destructive"
       });
     } finally {
+      setProductsLoading(false);
       setLoading(false);
     }
   };
@@ -387,8 +411,6 @@ const Products = () => {
       <Tabs defaultValue="products" className="space-y-4">
         <TabsList>
           <TabsTrigger value="products">Products</TabsTrigger>
-          {/* <TabsTrigger value="import">Import</TabsTrigger>
-          <TabsTrigger value="export">Export</TabsTrigger> */}
         </TabsList>
 
         <TabsContent value="products" className="space-y-4">
@@ -437,9 +459,15 @@ const Products = () => {
               <CardTitle>Products List</CardTitle>
             </CardHeader>
             <CardContent>
-              {products.length === 0 ? (
+              {productsLoading ? (
                 <div className="flex items-center justify-center h-32">
-                  <p className="text-muted-foreground">No products found</p>
+                  <div className="text-lg text-muted-foreground">Searching...</div>
+                </div>
+              ) : products.length === 0 ? (
+                <div className="flex items-center justify-center h-32">
+                  <p className="text-muted-foreground">
+                    {searchTerm ? `No products found for "${searchTerm}"` : "No products found"}
+                  </p>
                 </div>
               ) : (
                 <>
@@ -505,36 +533,6 @@ const Products = () => {
             </CardContent>
           </Card>
         </TabsContent>
-
-        {/* <TabsContent value="import" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Import Products</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Import products from a CSV file</p>
-              <Button>
-                <Upload className="h-4 w-4 mr-2" />
-                Import CSV
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="export" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Export Products</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Export all products to a CSV file</p>
-              <Button>
-                <Download className="h-4 w-4 mr-2" />
-                Export CSV
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent> */}
       </Tabs>
 
       {/* Edit Product Dialog */}
