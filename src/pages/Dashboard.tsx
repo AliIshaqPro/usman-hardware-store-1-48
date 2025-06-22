@@ -477,9 +477,7 @@ export default function Dashboard() {
               outerRadius={100}
               innerRadius={50}
               dataKey="value"
-              label={({ percentage }) => `${percentage}%`}
-              labelLine={{ stroke: '#64748b', strokeWidth: 1 }}
-              label={({ cx, cy, midAngle, outerRadius, percentage, index }) => {
+              label={({ cx, cy, midAngle, outerRadius, percentage }) => {
                 const RADIAN = Math.PI / 180;
                 const radius = outerRadius + 20;
                 const x = cx + radius * Math.cos(-midAngle * RADIAN);
@@ -868,7 +866,7 @@ export default function Dashboard() {
                       <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" className="dark:stroke-slate-700" />
                       <XAxis dataKey="week" tick={{ fontSize: 12, fill: 'currentColor' }} />
                       <YAxis tick={{ fontSize: 12, fill: 'currentColor' }} tickFormatter={(value) => `Rs. ${(value / 1000).toFixed(0)}k`} />
-                      <ChartTooltip content={<ChartTooltipContent formatter={(value, name) => [`Rs. ${value.toLocaleString()}`, name === 'revenue' ? 'Revenue' : 'Orders']} />} />
+                      <ChartTooltip content={<ChartTooltipContent formatter={(value, name) => [`Rs. ${value.toLocaleString()`, name === 'revenue' ? 'Revenue' : 'Orders']} />} />
                       <Area dataKey="revenue" fill="#10b981" stroke="#10b981" fillOpacity={0.3} />
                       <Area dataKey="orders" fill="#3b82f6" stroke="#3b82f6" fillOpacity={0.2} />
                     </AreaChart>
