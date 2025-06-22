@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -64,6 +63,18 @@ const Orders = () => {
     fetchOrders();
   }, [currentPage, filterStatus, filterCustomer, filterPaymentMethod, dateFrom, dateTo]);
 
+  // Add effect to reset page when search term changes
+  useEffect(() => {
+    if (searchTerm.trim()) {
+      setCurrentPage(1);
+    }
+  }, [searchTerm]);
+
+  // Also reset page when payment method filter changes (client-side filter)
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterPaymentMethod]);
+
   const fetchOrders = async () => {
     try {
       setLoading(true);
@@ -117,7 +128,7 @@ const Orders = () => {
   };
 
   const handleSearch = () => {
-    setCurrentPage(1);
+    setCurrentPage(1); // Reset to page 1 when searching
     fetchOrders();
   };
 
