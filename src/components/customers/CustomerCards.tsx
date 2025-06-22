@@ -68,19 +68,19 @@ export const CustomerCards = ({ customers, loading, onSelectCustomer, onEditCust
         throw new Error(ordersData.message || 'Failed to fetch customer orders');
       }
       
-      // Transform API data to match PDF generator interface
+      // Transform API data to match PDF generator interface - fix field name mapping
       const purchases = (ordersData.data?.orders || []).map((order: any) => ({
         id: order.id?.toString() || '',
-        orderNumber: order.orderNumber || `ORD-${order.id}`,
-        date: order.createdAt || order.date || new Date().toISOString(),
-        amount: parseFloat(order.totalAmount || '0'),
+        orderNumber: order.order_number || `ORD-${order.id}`,
+        date: order.created_at || order.date || new Date().toISOString(),
+        amount: parseFloat(order.total_amount || '0'),
         items: (order.items || []).map((item: any) => ({
-          productName: item.productName || 'Unknown Product',
+          productName: item.product_name || 'Unknown Product', // Fix: use product_name from API
           quantity: parseInt(item.quantity || '0'),
-          unitPrice: parseFloat(item.unitPrice || '0'),
+          unitPrice: parseFloat(item.unit_price || '0'), // Fix: use unit_price from API
           total: parseFloat(item.total || '0')
         })),
-        paymentStatus: order.paymentStatus || 'Pending',
+        paymentStatus: order.payment_status || 'Pending', // Fix: use payment_status from API
         notes: order.notes || ''
       }));
 
