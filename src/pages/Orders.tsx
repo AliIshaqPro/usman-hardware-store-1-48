@@ -98,7 +98,24 @@ const Orders = () => {
       
       if (response.success) {
         setOrders(response.data.sales);
-        setSummary(response.data.summary);
+        
+        // Calculate today's orders and margin
+        const today = new Date().toISOString().split('T')[0];
+        const todayOrders = response.data.sales.filter((order: Sale) => 
+          order.date === today
+        );
+        
+        const todayOrdersCount = todayOrders.length;
+        const todayMargin = todayOrders.reduce((total: number, order: Sale) => 
+          total + (order.subtotal - order.discount), 0
+        );
+        
+        // Update summary with today's data
+        setSummary({
+          ...response.data.summary,
+          todayOrders: todayOrdersCount,
+          todayMargin: todayMargin
+        });
       }
     } catch (error) {
       console.error('Error fetching orders:', error);
