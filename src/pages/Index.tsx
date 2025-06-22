@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,6 +30,8 @@ import {
   Smartphone
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 
 interface DashboardStats {
   financial: {
@@ -104,6 +105,17 @@ const Index = () => {
     refetchInterval: 2 * 60 * 1000, // Refetch every 2 minutes
   });
 
+  // Fetch daily sales data for the chart
+  const { data: dailySalesData } = useQuery({
+    queryKey: ['daily-sales-chart'],
+    queryFn: async () => {
+      const response = await fetch('https://usmanhardware.site/wp-json/ims/v1/dashboard/daily-sales');
+      if (!response.ok) throw new Error('Failed to fetch daily sales');
+      return response.json();
+    },
+    refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
+  });
+
   const stats: DashboardStats = dashboardData?.data || {
     financial: { todayRevenue: 0, monthRevenue: 0, profitMargin: 0, revenueGrowth: 0, netProfit: 0, grossProfit: 0, monthExpenses: 0 },
     sales: { todaySales: 0, weekSales: 0, avgOrderValue: 0, highValueSales: [] },
@@ -111,6 +123,28 @@ const Index = () => {
     customers: { totalCustomers: 0, newCustomersThisMonth: 0, avgCustomerValue: 0, totalReceivables: 0 },
     cashFlow: { netCashFlow: 0, monthlyInflows: 0, monthlyOutflows: 0 },
     alerts: []
+  };
+
+  // Prepare chart data
+  const chartData = dailySalesData?.data || [
+    { date: "Mon", orders: 12, earnings: 45000 },
+    { date: "Tue", orders: 19, earnings: 67000 },
+    { date: "Wed", orders: 8, earnings: 32000 },
+    { date: "Thu", orders: 25, earnings: 89000 },
+    { date: "Fri", orders: 22, earnings: 78000 },
+    { date: "Sat", orders: 18, earnings: 65000 },
+    { date: "Sun", orders: 15, earnings: 52000 }
+  ];
+
+  const chartConfig = {
+    orders: {
+      label: "Orders",
+      color: "#3b82f6",
+    },
+    earnings: {
+      label: "Earnings (PKR)",
+      color: "#10b981",
+    },
   };
 
   const formatCurrency = (amount: number) => {
@@ -327,6 +361,108 @@ const Index = () => {
                   </CardContent>
                 </Card>
               </div>
+            </div>
+
+            {/* Daily Sales & Earnings Chart */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Activity className="w-4 h-4 text-primary" />
+                <h2 className="text-sm md:text-base font-semibold text-foreground">Daily Sales & Earnings</h2>
+              </div>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-primary" />
+                    Weekly Performance Overview
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground">
+                    Track daily orders and earnings to monitor business performance
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <ChartContainer config={chartConfig} className="h-[300px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis 
+                          dataKey="date" 
+                          className="text-xs fill-muted-foreground"
+                          axisLine={false}
+                          tickLine={false}
+                        />
+                        <YAxis 
+                          yAxisId="orders"
+                          orientation="left"
+                          className="text-xs fill-muted-foreground"
+                          axisLine={false}
+                          tickLine={false}
+                        />
+                        <YAxis 
+                          yAxisId="earnings"
+                          orientation="right"
+                          className="text-xs fill-muted-foreground"
+                          axisLine={false}
+                          tickLine={false}
+                          tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                        />
+                        <ChartTooltip 
+                          content={({ active, payload, label }) => {
+                            if (active && payload && payload.length) {
+                              return (
+                                <div className="bg-background border border-border rounded-lg p-3 shadow-lg">
+                                  <p className="font-medium text-foreground mb-2">{label}</p>
+                                  <div className="space-y-1">
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                                      <span className="text-sm text-muted-foreground">Orders:</span>
+                                      <span className="text-sm font-medium">{payload[0]?.value}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                                      <span className="text-sm text-muted-foreground">Earnings:</span>
+                                      <span className="text-sm font-medium">{formatCurrency(payload[1]?.value || 0)}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            }
+                            return null;
+                          }}
+                        />
+                        <Line
+                          yAxisId="orders"
+                          type="monotone"
+                          dataKey="orders"
+                          stroke={chartConfig.orders.color}
+                          strokeWidth={3}
+                          dot={{ fill: chartConfig.orders.color, strokeWidth: 2, r: 4 }}
+                          activeDot={{ r: 6, stroke: chartConfig.orders.color, strokeWidth: 2 }}
+                        />
+                        <Line
+                          yAxisId="earnings"
+                          type="monotone"
+                          dataKey="earnings"
+                          stroke={chartConfig.earnings.color}
+                          strokeWidth={3}
+                          dot={{ fill: chartConfig.earnings.color, strokeWidth: 2, r: 4 }}
+                          activeDot={{ r: 6, stroke: chartConfig.earnings.color, strokeWidth: 2 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </ChartContainer>
+                  <div className="flex items-center justify-center gap-6 mt-4 text-xs">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                      <span className="text-muted-foreground">Daily Orders</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                      <span className="text-muted-foreground">Daily Earnings (PKR)</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
             {/* Financial Summary - Mobile Responsive */}
