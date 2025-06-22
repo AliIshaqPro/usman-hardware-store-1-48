@@ -35,7 +35,7 @@ const Inventory = () => {
   const [totalItems, setTotalItems] = useState(0);
   const [itemsPerPage] = useState(20);
   const [filteredProductsModal, setFilteredProductsModal] = useState({
-    open: false,
+    open: false,  
     title: '',
     filterType: 'all' as 'lowStock' | 'outOfStock' | 'inStock' | 'all'
   });
@@ -126,23 +126,6 @@ const Inventory = () => {
           totalItems: finalTotalItems,
           inventoryLength: inventoryArray.length 
         });
-        
-        if (response.data?.summary) {
-          setSummary(response.data.summary);
-        } else {
-          // Use the total items from pagination for better summary
-          const totalProducts = finalTotalItems;
-          const totalValue = inventoryArray.reduce((sum, item) => sum + (item.value || 0), 0);
-          const lowStockItems = inventoryArray.filter(item => (item.currentStock || 0) <= (item.minStock || 0) && (item.currentStock || 0) > 0).length;
-          const outOfStockItems = inventoryArray.filter(item => (item.currentStock || 0) === 0).length;
-          
-          setSummary({
-            totalProducts,
-            totalValue,
-            lowStockItems,
-            outOfStockItems
-          });
-        }
       }
     } catch (error) {
       console.error('Failed to fetch inventory:', error);
