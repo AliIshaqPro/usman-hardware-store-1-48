@@ -30,6 +30,10 @@ interface CustomerCardsProps {
 export const CustomerCards = ({ customers, loading, onSelectCustomer, onEditCustomer }: CustomerCardsProps) => {
   const getCustomerTypeColor = (type: string) => {
     const colors = {
+      Temporary: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100",
+      "Semi-Permanent": "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100",
+      Permanent: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100",
+      // Legacy support for old values
       individual: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100",
       business: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100",
     };
